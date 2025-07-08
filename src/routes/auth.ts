@@ -41,4 +41,35 @@ router.post("/login", (req: Request, res: Response) => {
   })();
 });
 
+router.get("/me", (req: Request, res: Response) => {
+  (async () => {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "No token provided" });
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+        userId: number;
+      };
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        include: {
+          userDetails: true, // 👈 this is required!
+        },
+      });
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      const { id, email, name, userDetails } = user;
+      res.json({
+        id,
+        email,
+        name: name || userDetails?.name || "",
+        phone: userDetails?.phone || "",
+        address: userDetails?.address || "",
+      });
+    } catch (err) {
+      res.status(401).json({ error: "Invalid token" });
+    }
+  })();
+});
+
 export default router;

@@ -32,7 +32,7 @@ model User {
   password String
   role      Role      @default(CUSTOMER)
 
-  UserDetails userDetails?
+  userDetails userDetails?
   orders   Order[]
   reviews  Review[]
   cart     Cart?
